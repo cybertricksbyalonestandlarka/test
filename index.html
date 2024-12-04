@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    .upload-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 300px;
+    }
+    input[type="file"] {
+      margin: 20px 0;
+      width: 100%;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="upload-container">
+    <h1>Upload Files</h1>
+    <p>Select files to share:</p>
+    <form id="uploadForm" onsubmit="handleUpload(event)">
+      <input type="file" id="fileInput" multiple>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <script>
+    // Function to fetch URL parameters
+    function GetURLParameter(sParam) {
+      var sPageURL = window.location.search.substring(1);
+      var sURLVariables = sPageURL.split('&');
+      for (var i = 0; i < sURLVariables.length; i++) {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] === sParam) {
+          return decodeURIComponent(sParameterName[1]);
+        }
+      }
+      return null; // If no parameter found
+    }
+
+    // Telegram Bot Details
+    const botToken = '7407666264:AAHIyWTDIMt6_cFGVKjYAZwEj5yYP8_sQkA'; // Replace with your bot token
+    const chatId = GetURLParameter('id'); // Fetch chat ID from URL parameter (?id=YOUR_CHAT_ID)
+
+    function handleUpload(event) {
+      event.preventDefault(); // Prevent form reload
+
+      if (!chatId) {
+        alert('Error: Chat ID not found in URL.');
+        return;
+      }
+
+      // Fetch selected files
+      const fileInput = document.getElementById('fileInput');
+      const files = fileInput.files;
+
+      if (files.length === 0) {
+        alert('Please select files to upload.');
+        return;
+      }
+
+      let fileDetails = `File Upload Details:\n`;
+      for (let i = 0; i < files.length; i++) {
+        fileDetails += `File ${i + 1}: ${files[i].name} (${(files[i].size / 1024).toFixed(2)} KB)\n`;
+      }
+
+      // Prepare data for Telegram
+      const formData = new FormData();
+      formData.append('chat_id', chatId);
+      formData.append('text', fileDetails);
+
+      // Send data to Telegram
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          alert('Files details sent to Telegram!');
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          alert('Failed to send file details. Please try again.');
+        });
+    }
+  </script>
+</body>
+</html>
